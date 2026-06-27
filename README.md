@@ -1,61 +1,59 @@
-# Studio Luxe — AI-Powered Salon Demo
+# Studio Luxe — Salon CRM & Management
 
-A polished, mobile-responsive demo for a high-end hair & beauty salon, featuring an **AI Style Advisor** powered by Claude. Built to showcase a modern, elegant salon web experience.
+A polished, fully-responsive **salon management dashboard** template — the day-to-day operating system a real salon owner or manager would use. Built with realistic demo data and an integrated (demo) AI Assistant.
 
-> _AI-Powered Style, Effortlessly Beautiful._
+## ✨ Pages
 
-## ✨ Features
-
-- **Landing page** — hero, services gallery (8 services with pricing), team, AI highlight, trust strip.
-- **Book Appointment** — a smooth 4-step flow: service → stylist → visual calendar + time → contact details → confirmation screen.
-- **AI Style Advisor (Luna)** — a streaming chat advisor (floating widget on every page + a dedicated `/advisor` page) that recommends services, colors and stylists.
-- **Gallery** — a styled before/after grid (hover to reveal the "after").
-- **Settings / Template panel** (`/settings`) — rebrand the whole demo for any salon: name, primary color, stylists, services + prices, hours, phone, Instagram. Saved to `localStorage`.
+| Page | What's inside |
+| --- | --- |
+| **Dashboard** | KPIs (revenue today, appointments, clients, new clients, avg ticket, rebooking rate), revenue-by-week area chart, services pie, top-stylist bars, today's schedule. |
+| **Appointments** | Day / week calendar toggle, color-coded by stylist, status pills (Booked → Completed → No Show…), "New Appointment" modal. |
+| **Clients** | Searchable + filterable CRM table (VIP / overdue / new), last visit, next appointment, total spent, loyalty points. |
+| **Client Detail** | Demographics, appointment history, saved color formulas, communication log, loyalty history. |
+| **Staff** | Stylist roster with role, monthly clients & revenue, commission, schedule, specialties. |
+| **Services & Pricing** | All services grouped by category with price, duration and commission. |
+| **Revenue** | Service / stylist / retail breakdowns, monthly chart, top products, outstanding balances. |
+| **AI Assistant** | "Studio Luxe AI Agent" — a chat-style interface with example salon-intelligence answers. Activates when an API key is saved. |
+| **Settings** | Salon profile, brand color, stylists, services, hours, and the **AI Integration** panel (API key, model, enable toggle). Saved to `localStorage`. |
 
 ## 🛠 Tech Stack
 
-- [Next.js 14](https://nextjs.org) (App Router)
-- [Tailwind CSS](https://tailwindcss.com) with a custom blush / gold / cream theme
-- [Vercel AI SDK](https://sdk.vercel.ai) (`ai` + `@ai-sdk/anthropic`)
-- [Claude](https://www.anthropic.com) (`claude-sonnet-4-6`) for the AI advisor
+- [Next.js 14](https://nextjs.org) (App Router) + TypeScript
+- [Tailwind CSS](https://tailwindcss.com) — custom blush / gold / cream theme
+- [Recharts](https://recharts.org) for charts
 - [lucide-react](https://lucide.dev) icons
+- Cormorant Garamond + Jost typography
+
+No backend required — all data is realistic demo data, and salon settings persist to `localStorage`.
+
+## 🤖 AI Assistant (demo)
+
+The AI Assistant page ships in a **locked demo state** with a convincing pre-populated conversation (overdue clients, top spenders, popular Saturday services, no-show rates). Adding an Anthropic API key under **Settings → AI Integration** flips the visual state to **Active** (green badge, enabled composer). The key is stored locally and only toggles UI state — no live API call is made in this demo.
 
 ## 🚀 Getting Started
 
 ```bash
 npm install
-
-# add your Anthropic API key
-cp .env.example .env.local
-# then edit .env.local and set ANTHROPIC_API_KEY=sk-ant-...
-
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## 🔑 Environment
-
-| Variable            | Description                                   |
-| ------------------- | --------------------------------------------- |
-| `ANTHROPIC_API_KEY` | Anthropic API key — enables the Luna AI chat. |
-
-The site renders fully without a key; only the AI advisor needs it.
-
 ## 📁 Structure
 
 ```
 app/
-  api/chat/route.ts   # streamText AI endpoint (Claude)
-  book/               # multi-step booking flow
-  advisor/            # full-page AI advisor
-  gallery/            # before/after grid
-  settings/           # template customization panel
-  page.tsx            # landing page
-components/            # Navbar, Footer, Chat, ChatWidget, ui/
-lib/                   # salon config, hooks, icons, utils
+  page.tsx            # Dashboard
+  appointments/       # Calendar + list
+  clients/            # CRM table
+  clients/[id]/       # Client profile
+  staff/  services/  revenue/
+  ai-assistant/       # AI Agent (demo)
+  settings/           # Template + AI integration
+components/            # Sidebar, AppShell, charts, KpiCard, ui/
+lib/                   # config (salon.ts), demo data (data.ts), helpers
 ```
 
 ---
 
-A demo experience. Built for showcase purposes.
+A demo template, built for showcase purposes.
