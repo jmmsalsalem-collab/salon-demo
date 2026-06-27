@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Studio Luxe — AI-Powered Salon Demo
 
-## Getting Started
+A polished, mobile-responsive demo for a high-end hair & beauty salon, featuring an **AI Style Advisor** powered by Claude. Built to showcase a modern, elegant salon web experience.
 
-First, run the development server:
+> _AI-Powered Style, Effortlessly Beautiful._
+
+## ✨ Features
+
+- **Landing page** — hero, services gallery (8 services with pricing), team, AI highlight, trust strip.
+- **Book Appointment** — a smooth 4-step flow: service → stylist → visual calendar + time → contact details → confirmation screen.
+- **AI Style Advisor (Luna)** — a streaming chat advisor (floating widget on every page + a dedicated `/advisor` page) that recommends services, colors and stylists.
+- **Gallery** — a styled before/after grid (hover to reveal the "after").
+- **Settings / Template panel** (`/settings`) — rebrand the whole demo for any salon: name, primary color, stylists, services + prices, hours, phone, Instagram. Saved to `localStorage`.
+
+## 🛠 Tech Stack
+
+- [Next.js 14](https://nextjs.org) (App Router)
+- [Tailwind CSS](https://tailwindcss.com) with a custom blush / gold / cream theme
+- [Vercel AI SDK](https://sdk.vercel.ai) (`ai` + `@ai-sdk/anthropic`)
+- [Claude](https://www.anthropic.com) (`claude-sonnet-4-6`) for the AI advisor
+- [lucide-react](https://lucide.dev) icons
+
+## 🚀 Getting Started
 
 ```bash
+npm install
+
+# add your Anthropic API key
+cp .env.example .env.local
+# then edit .env.local and set ANTHROPIC_API_KEY=sk-ant-...
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔑 Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable            | Description                                   |
+| ------------------- | --------------------------------------------- |
+| `ANTHROPIC_API_KEY` | Anthropic API key — enables the Luna AI chat. |
 
-## Learn More
+The site renders fully without a key; only the AI advisor needs it.
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+  api/chat/route.ts   # streamText AI endpoint (Claude)
+  book/               # multi-step booking flow
+  advisor/            # full-page AI advisor
+  gallery/            # before/after grid
+  settings/           # template customization panel
+  page.tsx            # landing page
+components/            # Navbar, Footer, Chat, ChatWidget, ui/
+lib/                   # salon config, hooks, icons, utils
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A demo experience. Built for showcase purposes.
