@@ -1,8 +1,12 @@
+"use client";
+
 import { ApptStatus, STATUS_META } from "@/lib/data";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function StatusBadge({ status }: { status: ApptStatus }) {
   const m = STATUS_META[status];
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -12,7 +16,7 @@ export function StatusBadge({ status }: { status: ApptStatus }) {
       )}
     >
       <span className={cn("h-1.5 w-1.5 rounded-full", m.dot)} />
-      {m.label}
+      {t(`st.${status}`)}
     </span>
   );
 }

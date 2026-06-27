@@ -1,10 +1,13 @@
+"use client";
+
 import { DollarSign, Scissors, ShoppingBag, TrendingUp, AlertCircle } from "lucide-react";
 
 import { PageHeader } from "@/components/AppShell";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { MonthlyRevenueChart } from "@/components/charts";
+import { useConfig } from "@/lib/useConfig";
+import { useI18n } from "@/lib/i18n";
 import { currency } from "@/lib/format";
-import { DEFAULT_CONFIG } from "@/lib/salon";
 import {
   revenueMonthly,
   revenueDaily,
@@ -13,45 +16,28 @@ import {
   clients,
 } from "@/lib/data";
 
-const SERVICES_COLOR = "#d76a55";
-const RETAIL_COLOR = "#d8a948";
+const SERVICES_COLOR = "#C9A96E";
+const RETAIL_COLOR = "#A6766A";
 
 export default function RevenuePage() {
-  const current = revenueMonthly[revenueMonthly.length - 1];
-  const monthTotal = current.services + current.retail;
+  const { t, loc } = useI18n();
+  const config = useConfig();
+
+  const june = revenueMonthly[revenueMonthly.length - 1];
+  const monthTotal = june.services + june.retail;
   const dailySum = revenueDaily.reduce((acc, d) => acc + d.revenue, 0);
   const avgDaily = Math.round(dailySum / 7);
 
   const kpis = [
-    {
-      label: "Revenue This Month",
-      value: currency(monthTotal),
-      icon: DollarSign,
-      tint: "bg-blush-50 text-blush-600",
-    },
-    {
-      label: "Service Revenue",
-      value: currency(current.services),
-      icon: Scissors,
-      tint: "bg-gold-50 text-gold-700",
-    },
-    {
-      label: "Retail Sales",
-      value: currency(current.retail),
-      icon: ShoppingBag,
-      tint: "bg-emerald-50 text-emerald-600",
-    },
-    {
-      label: "Avg Daily (7d)",
-      value: currency(avgDaily),
-      icon: TrendingUp,
-      tint: "bg-cream-100 text-charcoal-light",
-    },
+    { label: t("rv.thisMonth"), value: currency(monthTotal), icon: DollarSign },
+    { label: t("rv.serviceRev"), value: currency(june.services), icon: Scissors },
+    { label: t("rv.retail"), value: currency(june.retail), icon: ShoppingBag },
+    { label: t("rv.avgDaily"), value: currency(avgDaily), icon: TrendingUp },
   ];
 
   const maxService = Math.max(...servicesBreakdown.map((s) => s.value));
 
-  const stylists = [...DEFAULT_CONFIG.stylists].sort(
+  const stylists = [...config.stylists].sort(
     (a, b) => b.revenueThisMonth - a.revenueThisMonth
   );
   const maxStylist = Math.max(...stylists.map((s) => s.revenueThisMonth));
@@ -64,10 +50,7 @@ export default function RevenuePage() {
 
   return (
     <div>
-      <PageHeader
-        title="Revenue"
-        subtitle="Breakdown by service, stylist and retail"
-      />
+      <PageHeader title={t("rv.title")} subtitle={t("rv.subtitle")} />
 
       {/* KPI row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -84,9 +67,7 @@ export default function RevenuePage() {
                     {kpi.value}
                   </p>
                 </div>
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${kpi.tint}`}
-                >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold-200 bg-gold-50 text-gold-600">
                   <Icon className="h-4 w-4" />
                 </span>
               </div>
@@ -97,38 +78,36 @@ export default function RevenuePage() {
 
       {/* Monthly chart */}
       <Card className="mt-6">
-        <CardHeader
-          title="Monthly revenue"
-          subtitle="Services vs. retail · last 6 months"
-        />
+        <CardHeader title={t("rv.monthly")} subtitle={t("rv.servicesVsRetail")} />
         <div className="p-4">
-          <MonthlyRevenueChart data={revenueMonthly} />
+          <MonthlyRevenueChart
+            data={revenueMonthly}
+            servicesLabel={t("rv.services")}
+            retailLabel={t("rv.retailLegend")}
+          />
           <div className="mt-3 flex items-center justify-center gap-6 text-xs text-charcoal-light">
             <span className="flex items-center gap-1.5">
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: SERVICES_COLOR }}
               />
-              Services
+              {t("rv.services")}
             </span>
             <span className="flex items-center gap-1.5">
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: RETAIL_COLOR }}
               />
-              Retail
+              {t("rv.retailLegend")}
             </span>
           </div>
         </div>
       </Card>
 
       {/* Service type + stylist */}
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader
-            title="Revenue by service type"
-            subtitle="Where the money comes from"
-          />
+          <CardHeader title={t("rv.byService")} subtitle={t("rv.whereFrom")} />
           <div className="space-y-4 px-5 py-4">
             {servicesBreakdown.map((s) => {
               const pctNum = (s.value / maxService) * 100;
@@ -140,9 +119,9 @@ export default function RevenuePage() {
                         className="h-2.5 w-2.5 rounded-full"
                         style={{ backgroundColor: s.color }}
                       />
-                      {s.category}
+                      {t(`cat.${s.category}`)}
                     </span>
-                    <span className="text-sm font-medium text-charcoal">
+                    <span className="text-end text-sm font-medium text-charcoal">
                       {currency(s.value)}
                     </span>
                   </div>
@@ -159,10 +138,7 @@ export default function RevenuePage() {
         </Card>
 
         <Card>
-          <CardHeader
-            title="Revenue by stylist"
-            subtitle="Top earners this month"
-          />
+          <CardHeader title={t("rv.byStylist")} subtitle={t("rv.topEarners")} />
           <div className="space-y-4 px-5 py-4">
             {stylists.map((st) => {
               const pctNum = (st.revenueThisMonth / maxStylist) * 100;
@@ -171,13 +147,13 @@ export default function RevenuePage() {
                   <div className="mb-1.5 flex items-end justify-between gap-3">
                     <span>
                       <span className="block text-sm text-charcoal">
-                        {st.name}
+                        {loc(st.name, st.nameAr)}
                       </span>
                       <span className="text-xs text-charcoal-muted">
-                        {st.role}
+                        {t(`role.${st.role}`)}
                       </span>
                     </span>
-                    <span className="text-sm font-medium text-charcoal">
+                    <span className="text-end text-sm font-medium text-charcoal">
                       {currency(st.revenueThisMonth)}
                     </span>
                   </div>
@@ -195,29 +171,24 @@ export default function RevenuePage() {
       </div>
 
       {/* Retail + outstanding */}
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader
-            title="Top retail products"
-            subtitle="Best sellers this month"
-          />
+          <CardHeader title={t("rv.topProducts")} subtitle={t("rv.bestSellers")} />
           <div className="px-5 py-4">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs uppercase tracking-wide text-charcoal-muted">
-                  <th className="pb-2 text-left font-medium">Product</th>
-                  <th className="pb-2 text-right font-medium">Units</th>
-                  <th className="pb-2 text-right font-medium">Revenue</th>
+                  <th className="pb-2 text-start font-medium">{t("rv.product")}</th>
+                  <th className="pb-2 text-end font-medium">{t("rv.units")}</th>
+                  <th className="pb-2 text-end font-medium">{t("rv.revenueCol")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gold-100">
                 {retailProducts.map((p) => (
                   <tr key={p.name}>
-                    <td className="py-2.5 text-charcoal">{p.name}</td>
-                    <td className="py-2.5 text-right text-charcoal-light">
-                      {p.units}
-                    </td>
-                    <td className="py-2.5 text-right font-medium text-emerald-600">
+                    <td className="py-2.5 text-charcoal">{loc(p.name, p.nameAr)}</td>
+                    <td className="py-2.5 text-end text-charcoal-light">{p.units}</td>
+                    <td className="py-2.5 text-end font-medium text-charcoal">
                       {currency(p.revenue)}
                     </td>
                   </tr>
@@ -229,8 +200,8 @@ export default function RevenuePage() {
 
         <Card>
           <CardHeader
-            title="Outstanding balances"
-            subtitle="Unpaid client balances"
+            title={t("rv.outstanding")}
+            subtitle={t("rv.unpaid")}
             action={
               <span className="serif text-lg font-semibold text-rose-600">
                 {currency(outstandingTotal)}
@@ -240,12 +211,11 @@ export default function RevenuePage() {
           <div className="px-5 py-4">
             {outstanding.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-gold-200 bg-gold-50 text-gold-600">
                   <AlertCircle className="h-5 w-5" />
                 </span>
-                <p className="text-sm text-charcoal">All balances settled</p>
-                <p className="text-xs text-charcoal-muted">
-                  No clients have an outstanding balance.
+                <p className="text-sm text-charcoal-muted">
+                  {t("rv.noOutstanding")}
                 </p>
               </div>
             ) : (
@@ -257,13 +227,13 @@ export default function RevenuePage() {
                   >
                     <span>
                       <span className="block text-sm text-charcoal">
-                        {c.name}
+                        {loc(c.name, c.nameAr)}
                       </span>
                       <span className="text-xs text-charcoal-muted">
-                        last visit {c.lastVisit}
+                        {t("rv.lastVisit", { d: c.lastVisit })}
                       </span>
                     </span>
-                    <span className="text-sm font-semibold text-rose-600">
+                    <span className="text-end text-sm font-semibold text-rose-600">
                       {currency(c.outstanding ?? 0)}
                     </span>
                   </li>

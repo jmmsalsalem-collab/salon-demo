@@ -10,7 +10,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-gold-100 bg-white/80 shadow-sm backdrop-blur-sm",
+        "rounded-2xl border border-gold-100 bg-white shadow-card",
         className
       )}
     >
@@ -32,9 +32,7 @@ export function CardHeader({
     <div className="flex items-start justify-between gap-4 border-b border-gold-100 px-5 py-4">
       <div>
         <h3 className="serif text-lg text-charcoal">{title}</h3>
-        {subtitle && (
-          <p className="mt-0.5 text-xs text-charcoal-muted">{subtitle}</p>
-        )}
+        {subtitle && <p className="mt-0.5 text-xs text-charcoal-muted">{subtitle}</p>}
       </div>
       {action}
     </div>

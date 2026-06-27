@@ -7,22 +7,29 @@ import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { useConfig } from "@/lib/useConfig";
-import { appointments, WEEKDAYS, ApptStatus } from "@/lib/data";
+import { useI18n } from "@/lib/i18n";
+import { WEEKDAY_LABELS } from "@/lib/translations";
+import { appointments, ApptStatus } from "@/lib/data";
 import { currency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const FULL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 export default function AppointmentsPage() {
   const config = useConfig();
+  const { t, loc, lang, dir } = useI18n();
   const [view, setView] = useState<"day" | "week">("week");
-  const [activeDay, setActiveDay] = useState(3); // Thursday
+  const [activeDay, setActiveDay] = useState(3);
   const [showNew, setShowNew] = useState(false);
+
+  const Prev = dir === "rtl" ? ChevronRight : ChevronLeft;
+  const Next = dir === "rtl" ? ChevronLeft : ChevronRight;
 
   const stylistById = useMemo(
     () => Object.fromEntries(config.stylists.map((s) => [s.id, s])),
     [config.stylists]
   );
+  const wd = (i: number) => (lang === "ar" ? WEEKDAY_LABELS[i].ar : WEEKDAY_LABELS[i].en);
+  const svc = (s: { services: string[]; servicesAr: string[] }) =>
+    (lang === "ar" ? s.servicesAr : s.services).join(lang === "ar" ? "، " : ", ");
 
   const dayAppts = appointments
     .filter((a) => a.day === activeDay)
@@ -30,29 +37,24 @@ export default function AppointmentsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Appointments"
-        subtitle="Manage your salon's daily and weekly schedule."
-      >
+      <PageHeader title={t("appt.title")} subtitle={t("appt.subtitle")}>
         <div className="inline-flex rounded-xl border border-gold-200 bg-white p-1">
           {(["day", "week"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
               className={cn(
-                "rounded-lg px-4 py-1.5 text-sm font-medium capitalize transition-colors",
-                view === v
-                  ? "bg-blush-500 text-white shadow-sm"
-                  : "text-charcoal-light hover:text-charcoal"
+                "rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
+                view === v ? "bg-charcoal text-cream-50" : "text-charcoal-light hover:text-charcoal"
               )}
             >
-              {v}
+              {t(`appt.${v}`)}
             </button>
           ))}
         </div>
-        <Button onClick={() => setShowNew(true)} variant="primary" size="sm">
+        <Button onClick={() => setShowNew(true)} variant="gold" size="sm">
           <Plus className="h-4 w-4" />
-          New Appointment
+          {t("appt.new")}
         </Button>
       </PageHeader>
 
@@ -61,52 +63,53 @@ export default function AppointmentsPage() {
         {config.stylists.map((s) => (
           <span key={s.id} className="flex items-center gap-1.5 text-xs text-charcoal-light">
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-            {s.name.split(" ")[0]}
+            {loc(s.name.split(" ")[0], s.nameAr.split(" ")[0])}
           </span>
         ))}
       </div>
 
       {view === "week" ? (
         <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-          {WEEKDAYS.map((label, dayIdx) => {
+          {WEEKDAY_LABELS.map((_, dayIdx) => {
             const list = appointments
               .filter((a) => a.day === dayIdx)
               .sort((a, b) => a.start.localeCompare(b.start));
             const total = list.reduce((s, a) => s + a.price, 0);
             return (
-              <Card key={label} className="flex flex-col">
+              <Card key={dayIdx} className="flex flex-col">
                 <div className="flex items-center justify-between border-b border-gold-100 px-3 py-2.5">
-                  <span className="text-sm font-semibold text-charcoal">{label}</span>
+                  <span className="text-sm font-semibold text-charcoal">{wd(dayIdx)}</span>
                   <span className="text-xs text-charcoal-muted">{list.length}</span>
                 </div>
-                <div className="flex-1 space-y-2 p-2">
+                <div className="flex-1 space-y-1.5 p-2">
                   {list.length === 0 && (
-                    <p className="px-2 py-6 text-center text-xs text-charcoal-muted">
-                      No bookings
-                    </p>
+                    <p className="px-2 py-6 text-center text-xs text-charcoal-muted">{t("appt.noBookings")}</p>
                   )}
                   {list.map((a) => {
                     const st = stylistById[a.stylistId];
+                    const faded = a.status === "Cancelled" || a.status === "No Show";
                     return (
                       <div
                         key={a.id}
-                        className="rounded-lg border-l-[3px] bg-cream-50 p-2.5 transition-colors hover:bg-cream-100"
+                        className={cn(
+                          "rounded-md bg-cream-50 px-2.5 py-1.5 transition-colors hover:bg-cream-100 ltr:border-l-2 rtl:border-r-2",
+                          faded && "opacity-50"
+                        )}
                         style={{ borderColor: st?.color }}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-charcoal-light">{a.start}</span>
-                          <span className="text-xs font-medium text-charcoal">{currency(a.price)}</span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-medium text-charcoal-light">{a.start}</span>
+                          <span className="text-[11px] font-medium text-charcoal">{currency(a.price)}</span>
                         </div>
-                        <p className="mt-1 truncate text-sm font-medium text-charcoal">{a.clientName}</p>
-                        <p className="truncate text-xs text-charcoal-muted">{a.services.join(", ")}</p>
-                        <div className="mt-1.5">
-                          <StatusBadge status={a.status} />
-                        </div>
+                        <p className="truncate text-[13px] font-medium text-charcoal">
+                          {loc(a.clientName, a.clientNameAr)}
+                        </p>
+                        <p className="truncate text-[11px] text-charcoal-muted">{svc(a)}</p>
                       </div>
                     );
                   })}
                 </div>
-                <div className="border-t border-gold-100 px-3 py-2 text-right text-xs font-medium text-charcoal-light">
+                <div className="border-t border-gold-100 px-3 py-2 text-xs font-medium text-charcoal-light ltr:text-right rtl:text-left">
                   {currency(total)}
                 </div>
               </Card>
@@ -115,50 +118,46 @@ export default function AppointmentsPage() {
         </div>
       ) : (
         <Card>
-          {/* Day navigator */}
-          <div className="flex items-center justify-between border-b border-gold-100 px-5 py-3">
+          <div className="flex items-center justify-between border-b border-gold-100 px-3 py-3 sm:px-5">
             <button
               onClick={() => setActiveDay((d) => Math.max(0, d - 1))}
               disabled={activeDay === 0}
-              className="rounded-lg p-1.5 text-charcoal-light hover:bg-blush-50 disabled:opacity-30"
+              className="rounded-lg p-1.5 text-charcoal-light hover:bg-cream-100 disabled:opacity-30"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <Prev className="h-4 w-4" />
             </button>
-            <div className="flex items-center gap-2">
-              {WEEKDAYS.map((d, i) => (
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              {WEEKDAY_LABELS.map((_, i) => (
                 <button
-                  key={d}
+                  key={i}
                   onClick={() => setActiveDay(i)}
                   className={cn(
                     "rounded-lg px-3 py-1.5 text-sm transition-colors",
-                    activeDay === i
-                      ? "bg-blush-500 text-white"
-                      : "text-charcoal-light hover:bg-blush-50"
+                    activeDay === i ? "bg-charcoal text-cream-50" : "text-charcoal-light hover:bg-cream-100"
                   )}
                 >
-                  {d}
+                  {wd(i)}
                 </button>
               ))}
             </div>
             <button
               onClick={() => setActiveDay((d) => Math.min(5, d + 1))}
               disabled={activeDay === 5}
-              className="rounded-lg p-1.5 text-charcoal-light hover:bg-blush-50 disabled:opacity-30"
+              className="rounded-lg p-1.5 text-charcoal-light hover:bg-cream-100 disabled:opacity-30"
             >
-              <ChevronRight className="h-4 w-4" />
+              <Next className="h-4 w-4" />
             </button>
           </div>
 
           <div className="p-3 sm:p-5">
             <p className="mb-4 text-sm text-charcoal-light">
-              <span className="font-medium text-charcoal">{FULL_DAYS[activeDay]}</span> ·{" "}
-              {dayAppts.length} appointments ·{" "}
-              {currency(dayAppts.reduce((s, a) => s + a.price, 0))} expected
+              {t("appt.summary", {
+                n: dayAppts.length,
+                sum: currency(dayAppts.reduce((s, a) => s + a.price, 0)),
+              })}
             </p>
             {dayAppts.length === 0 ? (
-              <p className="py-12 text-center text-sm text-charcoal-muted">
-                No appointments scheduled.
-              </p>
+              <p className="py-12 text-center text-sm text-charcoal-muted">{t("appt.none")}</p>
             ) : (
               <div className="space-y-2">
                 {dayAppts.map((a) => {
@@ -166,7 +165,7 @@ export default function AppointmentsPage() {
                   return (
                     <div
                       key={a.id}
-                      className="flex items-center gap-4 rounded-xl border border-gold-100 bg-white p-3 transition-shadow hover:shadow-sm"
+                      className="flex items-center gap-4 rounded-xl border border-gold-100 bg-white p-3 transition-shadow hover:shadow-card"
                     >
                       <div className="flex w-20 shrink-0 flex-col items-center justify-center rounded-lg bg-cream-100 py-2">
                         <span className="text-sm font-semibold text-charcoal">{a.start}</span>
@@ -175,20 +174,15 @@ export default function AppointmentsPage() {
                           {a.durationMin}m
                         </span>
                       </div>
-                      <span
-                        className="h-12 w-1 shrink-0 rounded-full"
-                        style={{ backgroundColor: st?.color }}
-                      />
+                      <span className="h-12 w-1 shrink-0 rounded-full" style={{ backgroundColor: st?.color }} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-charcoal">{a.clientName}</p>
-                        <p className="truncate text-sm text-charcoal-muted">
-                          {a.services.join(", ")}
-                        </p>
+                        <p className="truncate font-medium text-charcoal">{loc(a.clientName, a.clientNameAr)}</p>
+                        <p className="truncate text-sm text-charcoal-muted">{svc(a)}</p>
                         <p className="mt-0.5 text-xs text-charcoal-light">
-                          with {st?.name} · {st?.role}
+                          {t("c.with")} {loc(st?.name ?? "", st?.nameAr ?? "")} · {t(`role.${st?.role}`)}
                         </p>
                       </div>
-                      <div className="hidden text-right sm:block">
+                      <div className="hidden ltr:text-right rtl:text-left sm:block">
                         <p className="font-medium text-charcoal">{currency(a.price)}</p>
                       </div>
                       <StatusBadge status={a.status} />
@@ -208,57 +202,52 @@ export default function AppointmentsPage() {
 
 function NewAppointmentModal({ onClose }: { onClose: () => void }) {
   const config = useConfig();
+  const { t, loc } = useI18n();
   const statuses: ApptStatus[] = ["Booked", "Confirmed", "In Chair"];
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-charcoal/30 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-espresso/40 backdrop-blur-sm sm:items-center sm:p-4">
       <div className="w-full max-w-lg overflow-hidden rounded-t-3xl bg-white shadow-soft sm:rounded-3xl">
         <div className="flex items-center justify-between border-b border-gold-100 bg-cream-50 px-6 py-4">
-          <h3 className="serif text-xl text-charcoal">New Appointment</h3>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-charcoal-light hover:bg-blush-50">
+          <h3 className="serif text-xl text-charcoal">{t("appt.new")}</h3>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-charcoal-light hover:bg-cream-200">
             <X className="h-5 w-5" />
           </button>
         </div>
         <div className="grid gap-4 p-6 sm:grid-cols-2">
-          <ModalField label="Client">
-            <input placeholder="Search or add client…" className={inputCls} />
+          <ModalField label={t("appt.client")}>
+            <input placeholder={t("appt.searchClient")} className={inputCls} />
           </ModalField>
-          <ModalField label="Stylist">
+          <ModalField label={t("appt.stylist")}>
             <select className={inputCls}>
               {config.stylists.map((s) => (
-                <option key={s.id}>{s.name}</option>
+                <option key={s.id}>{loc(s.name, s.nameAr)}</option>
               ))}
             </select>
           </ModalField>
-          <ModalField label="Service" full>
+          <ModalField label={t("appt.service")} full>
             <select className={inputCls}>
               {config.services.slice(0, 8).map((s) => (
-                <option key={s.id}>{s.name} — {s.price}</option>
+                <option key={s.id}>{loc(s.name, s.nameAr)} — {s.price}</option>
               ))}
             </select>
           </ModalField>
-          <ModalField label="Date">
+          <ModalField label={t("appt.date")}>
             <input type="date" className={inputCls} />
           </ModalField>
-          <ModalField label="Time">
+          <ModalField label={t("appt.time")}>
             <input type="time" className={inputCls} />
           </ModalField>
-          <ModalField label="Status" full>
-            <div className="flex gap-2">
+          <ModalField label={t("appt.status")} full>
+            <div className="flex flex-wrap gap-2">
               {statuses.map((s) => (
-                <span key={s} className="cursor-default">
-                  <StatusBadge status={s} />
-                </span>
+                <StatusBadge key={s} status={s} />
               ))}
             </div>
           </ModalField>
         </div>
         <div className="flex justify-end gap-3 border-t border-gold-100 bg-cream-50 px-6 py-4">
-          <Button onClick={onClose} variant="outline" size="sm">
-            Cancel
-          </Button>
-          <Button onClick={onClose} variant="primary" size="sm">
-            Create appointment
-          </Button>
+          <Button onClick={onClose} variant="outline" size="sm">{t("c.cancel")}</Button>
+          <Button onClick={onClose} variant="primary" size="sm">{t("appt.create")}</Button>
         </div>
       </div>
     </div>
@@ -268,15 +257,7 @@ function NewAppointmentModal({ onClose }: { onClose: () => void }) {
 const inputCls =
   "w-full rounded-xl border border-gold-200 bg-white px-3.5 py-2.5 text-sm text-charcoal outline-none focus:border-gold-400";
 
-function ModalField({
-  label,
-  full,
-  children,
-}: {
-  label: string;
-  full?: boolean;
-  children: React.ReactNode;
-}) {
+function ModalField({ label, full, children }: { label: string; full?: boolean; children: React.ReactNode }) {
   return (
     <div className={full ? "sm:col-span-2" : ""}>
       <label className="mb-1.5 block text-sm font-medium text-charcoal">{label}</label>

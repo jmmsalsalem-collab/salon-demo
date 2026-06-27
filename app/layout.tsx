@@ -1,27 +1,30 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@/lib/i18n";
 import AppShell from "@/components/AppShell";
 
-const cormorant = Cormorant_Garamond({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-cormorant",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
   display: "swap",
 });
 
-const jost = Jost({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-jost",
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-cairo",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Studio Luxe — Salon Management",
   description:
-    "Studio Luxe salon CRM & management dashboard — appointments, clients, staff, services, revenue and an AI assistant.",
+    "Studio Luxe salon CRM & management dashboard — bilingual (EN/AR), KWD pricing, appointments, clients, staff, services, revenue and an AI assistant.",
 };
+
+const dirScript = `(function(){try{var l=localStorage.getItem('studio-luxe-lang');if(l==='ar'){document.documentElement.lang='ar';document.documentElement.dir='rtl';}}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -29,9 +32,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${cormorant.variable} ${jost.variable} bg-wash min-h-screen`}>
-        <AppShell>{children}</AppShell>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: dirScript }} />
+      </head>
+      <body className={`${inter.variable} ${cairo.variable} bg-wash min-h-screen`}>
+        <LanguageProvider>
+          <AppShell>{children}</AppShell>
+        </LanguageProvider>
       </body>
     </html>
   );
